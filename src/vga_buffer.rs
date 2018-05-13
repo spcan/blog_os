@@ -138,6 +138,21 @@ impl Writer {
             self.buffer.chars[row][col].write(blank);
         }
     }
+
+    /// Backspace x characters
+    fn backspace(&mut self, x: usize) {
+        if self.column_position == 0 { return; }
+
+        let blank = ScreenChar {
+            ascii_character: b' ',
+            color_code: self.color_code,
+        };
+
+        for _ in 0..x {
+            self.buffer.chars[BUFFER_HEIGHT-1][column_position].write(blank);
+            self.column_position -= 1;
+        }
+    }
 }
 
 impl fmt::Write for Writer {
@@ -159,10 +174,21 @@ macro_rules! println {
     ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
 }
 
+/// Backspace macro
+macro_rules! backspace {
+    () => (backspace!(1));
+    ($x:expr) => ($crate::vga_buffer::backspace(x));
+}
+
 /// Prints the given formatted string to the VGA text buffer through the global `WRITER` instance.
 pub fn print(args: fmt::Arguments) {
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
+}
+
+/// Backspaces x times
+pub fn backspace(x: usize) {
+    WRITER.lock().backspace(x);
 }
 
 #[cfg(test)]
