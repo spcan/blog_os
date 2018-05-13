@@ -153,6 +153,23 @@ impl Writer {
             self.column_position -= 1;
         }
     }
+
+    /// Backspace x characters
+    fn delete(&mut self, x: usize) {
+        if self.column_position == BUFFER_WIDTH-1 { return; }
+
+        let delta: usize;
+
+        if self.column_position + x >= BUFFER_WIDTH {
+            delta = BUFFER_WIDTH - self.column_position;
+            self.column_position = BUFFER_WIDTH;
+            self.backspace(delta);
+        } else {
+            delta = x;
+            self.column_position += x;
+            self.backspace(delta);
+        }
+    }
 }
 
 impl fmt::Write for Writer {
@@ -180,6 +197,12 @@ macro_rules! backspace {
     ($x:expr) => ($crate::vga_buffer::backspace(x));
 }
 
+/// Delete macro
+macro_rules! delete {
+    () => (delete!(1));
+    ($x:expr) => ($crate::vga_buffer::delete(x));
+}
+
 /// Prints the given formatted string to the VGA text buffer through the global `WRITER` instance.
 pub fn print(args: fmt::Arguments) {
     use core::fmt::Write;
@@ -189,6 +212,11 @@ pub fn print(args: fmt::Arguments) {
 /// Backspaces x times
 pub fn backspace(x: usize) {
     WRITER.lock().backspace(x);
+}
+
+/// Delete macro
+pub fn delete(x: usize) {
+    WRITER.lock().delete(x);
 }
 
 #[cfg(test)]
